@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Insert title here</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<!--<h1 th:inlines="text">文件上传</h1>-->
+<!--<input id="cert" type="file"/>-->
+<!--<input type="button" value="上传" onclick="submit2();"/>-->
+<div id="app">
+    <el-upload
+            class="upload-demo"
+            action="''"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :before-remove="beforeRemove"
+            :show-file-list="false"
+            multiple
+            :limit="1"
+            ref="my-upload"
+            :on-exceed="handleExceed"
+            :http-request="uploadSectionFile"
+            v-loading.fullscreen.lock="fullscreenLoading"
+            >
+        <el-button size="small" type="primary">点击上传</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+    </el-upload>
+    </el-upload>
+</div>
+
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data:{
+            fileList:[],
+            fullscreenLoading: false
+        },
+        methods: {
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePreview(file) {
+                console.log(file);
+            },
+            handleExceed(files, fileList) {
+                this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+            },
+            beforeRemove(file, fileList) {
+                return this.$confirm(`确定移除 ${file.name}？`);
+            },
+            uploadSectionFile(param) {
+                console.log('自定义上传')
+                var fileObj = param.file;
+                // FormData 对象
+                var form = new FormData();
+                // 文件对象
+                form.append("fileName", fileObj);
+                // form.append("userId", this.userId);
+                // form.append("userName", this.userName);
+                this.fullscreenLoading = true;
+                axios({
+                    method: 'post',
+                    url: 'fileUpload',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    responseType: 'blob',
+                    data: form
+                }).then(res => {
+                    this.fullscreenLoading = false;
+                    let blob = new Blob([res.data], { type: "application/vnd.ms-excel" });
+                    // 设置文件类型excel
+                    let url = window.URL.createObjectURL(blob); // 创建一个临时的url指向blob对象
+                    let temp =
+                        decodeURI(res.headers["content-disposition"].split(";")[1].split("filename=")[1]);
+                    let a = document.createElement("a");
+                    a.href = url;
+                    a.download = temp ;
+                    a.click();
+                    // 释放这个临时的对象url
+                    this.$refs['my-upload'].clearFiles();
+                    window.URL.revokeObjectURL(url);
+                })
+            }
+        }
+    });
+
+</script>
+</html>
