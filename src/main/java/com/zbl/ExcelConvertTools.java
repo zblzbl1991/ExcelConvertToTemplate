@@ -22,7 +22,7 @@ public class ExcelConvertTools {
     }
 
     private static void export() {
-        FileReader fileReader = new FileReader("科目余额表202201.xls");
+        FileReader fileReader = new FileReader("20220404155348科目余额表_2022年第3期.xls");
         File file = fileReader.getFile();
         ExcelReader reader = ExcelUtil.getReader(file);
         System.out.println(file);
